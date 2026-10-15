@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a47adc51654264e43ba68bcddee557ce, type: 3}
+  m_Name: ForgeEnvironment
+  m_EditorClassIdentifier: 
+  sourceTerrain: {fileID: 15600000, guid: 9d9673381bb6ff74e96475734841baed, type: 2}
+  grass: {fileID: 8574412962073106934, guid: e83e5b2c03473f74983ef0f5b9c160c0, type: 2}
+  soil: {fileID: 8574412962073106934, guid: ffb94bff813c3c041b5c22cc023fb25e, type: 2}
+  pine: {fileID: 2503636403554334455, guid: 451d860cead90b64bbbab1639909594c, type: 3}
+  rock: {fileID: 1338854965163658714, guid: dd1cb49c7d40bfb44a9b4201f7f74b6c, type: 3}
+  terrainShader: {fileID: 4800000, guid: 69c1f799e772cb6438f56c23efccb782, type: 3}
+  foliageShader: {fileID: 4800000, guid: 933532a4fcc9baf4fa0491de14d08ed7, type: 3}
