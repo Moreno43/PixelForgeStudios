@@ -1,0 +1,21 @@
+[attr]lfs filter=lfs diff=lfs merge=lfs -text
+[attr]unity-json eol=lf linguist-language=json
+[attr]unity-yaml merge=unityyamlmerge eol=lf linguist-language=yaml
+*.fbx lfs
+*.FBX lfs
+*.png lfs
+*.tga lfs
+*.tif lfs
+*.tiff lfs
+*.exr lfs
+*.hdr lfs
+*.psd lfs
+*.wav lfs
+*.mp3 lfs
+*.ogg lfs
+*.ttf lfs
+*.otf lfs
+*.pdf lfs
+*.dll lfs
+"My project/Assets/TerrainDemoScene_HDRP/Terrain/Data/*.asset" lfs
+LightingData.asset lfs
