@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace PixelForge
 {
+    /// <summary>Provides editor commands for scene creation and configures the menu as the Play Mode entry point.</summary>
     public static class ForgeArenaSetup
     {
         const string ArenaPath = "Assets/Scenes/ForgeArena.unity";
@@ -28,7 +29,7 @@ namespace PixelForge
             EditorSceneManager.playModeStartScene = arena;
         }
 
-        [MenuItem("PixelForge/Crear o abrir arena de lucha")]
+        [MenuItem("PixelForge/Create or Open Fight Arena")]
         public static void Create()
         {
             if(!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo()) return;
@@ -36,7 +37,7 @@ namespace PixelForge
             if(System.IO.File.Exists(path))
             {
                 var existing=EditorSceneManager.OpenScene(path);
-                if(Object.FindObjectOfType<ForgeArena>()==null) throw new System.InvalidOperationException("La escena no contiene ForgeArena.");
+                if(Object.FindObjectOfType<ForgeArena>()==null) throw new System.InvalidOperationException("The scene does not contain a ForgeArena component.");
                 EditorSceneManager.SaveScene(existing,path);
                 ConfigureStartup();
                 Debug.Log("FORGE_SETUP_OK: Arena scene loaded and validated.");
@@ -57,7 +58,7 @@ namespace PixelForge
             ConfigureStartup();
             Debug.Log("FORGE_SETUP_OK: Arena created and registered as first build scene.");
         }
-        [MenuItem("PixelForge/Abrir menú principal")]
+        [MenuItem("PixelForge/Open Main Menu")]
         public static void OpenMenu()
         {
             if(!EditorSceneManager.SaveCurrentModifiedScenesIfUserWantsTo())return;

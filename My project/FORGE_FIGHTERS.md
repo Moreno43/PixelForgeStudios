@@ -2,7 +2,7 @@
 
 ## Terreno de los paquetes instalados
 
-La arena carga `Resources/ForgeEnvironment.asset`, preparado automáticamente por `ForgeEnvironmentSetup` después de importar/compilar. Si no se genera, ejecuta **PixelForge > Preparar terreno de los assets** fuera de Play.
+La arena carga `Resources/ForgeEnvironment.asset`, preparado automáticamente por `ForgeEnvironmentSetup` después de importar/compilar. Si no se genera, ejecuta **PixelForge > Prepare Terrain Assets** fuera de Play.
 
 Se usan datos de altura de Terrain_3_3 del Terrain Sample, capas Grass_A y Grass_Soil_A, Pine_A y Rock_A_01. El relieve se adapta a una parcela de 100×100 metros y se aplana su centro de 12 metros de radio para mantener a los luchadores sobre el suelo. Las alturas se remuestrean a 257×257 y las texturas a un splatmap de 128×128. Los originales no se modifican.
 
@@ -14,7 +14,7 @@ Validación realizada: compilación de todos los scripts Forge con el compilador
 
 ## Abrir y jugar
 
-Abre esta carpeta con Unity **2021.3.45f2** y espera a que termine de compilar. Pulsa **Play**: el editor inicia automáticamente `Assets/Scenes/ForgeMenu.unity`, aunque tengas Playground abierta. Al salir de Play, Unity vuelve a la escena que estabas editando. Para abrir el menú directamente usa **PixelForge > Abrir menú principal**. El menú y la selección de personajes viven en ForgeMenu; al confirmar, se carga ForgeArena. Pausa/resultados permiten volver al menú.
+Abre esta carpeta con Unity **2021.3.45f2** y espera a que termine de compilar. Pulsa **Play**: el editor inicia automáticamente `Assets/Scenes/ForgeMenu.unity`, aunque tengas Playground abierta. Al salir de Play, Unity vuelve a la escena que estabas editando. Para abrir el menú directamente usa **PixelForge > Open Main Menu**. El menú y la selección de personajes viven en ForgeMenu; al confirmar, se carga ForgeArena. Pausa/resultados permiten volver al menú.
 
 El menú usa Canvas, CanvasScaler, GraphicRaycaster y EventSystem con InputSystemUIInputModule. Se controla con ratón o flechas y Enter. Los elementos decorativos no interceptan los clics. El menú ya no instancia luchadores ni sus componentes de input antes de comenzar la batalla.
 

@@ -4,6 +4,10 @@ using UnityEngine.SceneManagement;
 
 namespace PixelForge
 {
+    /// <summary>
+    /// Runs a two-fighter match: player input, CPU decisions, rounds, damage, camera, and HUD.
+    /// Character selection is supplied by ForgeMatch when the menu loads this scene.
+    /// </summary>
     public sealed class ForgeArena : MonoBehaviour
     {
         public GameObject fighterPrefab, sceneryPrefab;
@@ -38,6 +42,7 @@ namespace PixelForge
             if(skyMaterial!=null)RenderSettings.skybox=skyMaterial;
             RenderSettings.ambientLight=new Color(.65f,.7f,.8f);
             var sun=new GameObject("Arena Sun").AddComponent<Light>();sun.type=LightType.Directional;sun.intensity=1.3f;sun.transform.rotation=Quaternion.Euler(45,-30,0);
+            // Use the imported terrain when configured; keep a lightweight fallback for new clones.
             if(!ForgeTerrain.Build())ForgeLandscape.Build(rockPrefab);
             pickLeft=ForgeMatch.Left;pickRight=ForgeMatch.Right;versus=ForgeMatch.Versus;
             overlay=new ForgeUI();overlay.Hide();Begin();Cursor.lockState=CursorLockMode.None;Cursor.visible=true;
@@ -45,6 +50,8 @@ namespace PixelForge
         void Preview() { Clear(); left=new ForgeFighter(Roster[pickLeft],-3,fighterPrefab); right=new ForgeFighter(Roster[pickRight],3,fighterPrefab); }
         void LateUpdate()
         {
+            // Animator evaluates between Update and LateUpdate. Apply combat poses afterward
+            // so the imported locomotion clips cannot overwrite the final attack pose.
             if(left==null||right==null)return;left.Pose();right.Pose();
             var middle=(left.Position+right.Position)*.5f;middle.y=1;
             float distance=Vector3.Distance(left.Position,right.Position);
@@ -57,6 +64,7 @@ namespace PixelForge
         void Begin() { Preview(); round=1; left.Wins=right.Wins=0; ResetRound(); screen=ScreenState.Fight; }
         void ResetRound()
         {
+            // Reset temporary combat state while preserving each fighter's match win count.
             left.Health=left.Profile.Health; right.Health=right.Profile.Health;
             left.Height=right.Height=left.VerticalSpeed=right.VerticalSpeed=0;
             left.Action=right.Action=0; left.Stun=right.Stun=0; left.Blocking=right.Blocking=false;
@@ -67,6 +75,7 @@ namespace PixelForge
         void Update()
         {
             if(Down(Key.Escape)) {if(screen==ScreenState.Fight){screen=ScreenState.Pause;ShowOverlay(false);}else if(screen==ScreenState.Pause){screen=ScreenState.Fight;overlay.Hide();}}
+            // Freeze simulation and animation without stopping the menu's UI input processing.
             bool paused=screen==ScreenState.Pause || screen==ScreenState.Result;
             left.SetPaused(paused);right.SetPaused(paused);
             if(paused)return;
@@ -85,17 +94,21 @@ namespace PixelForge
             if(versus) rm=Control(right,Key.LeftArrow,Key.RightArrow,Key.UpArrow,Key.DownArrow,Key.Numpad0,Key.Numpad1,Key.Numpad2,Key.Numpad3,Key.RightShift,dt);
             else
             {
+                // Choose attacks and blocking at intervals rather than randomly every frame.
                 aiTime-=dt; float distance=Vector3.Distance(left.Position,right.Position);
                 if(left.Action==0||right.Action!=0||right.Stun>0)right.Blocking=false;
                 if(right.Action==0 && right.Stun<=0 && !right.Blocking && distance>1.5f){rm=1;var direction=left.Position-right.Position;direction.y=0;right.Position+=direction.normalized*right.Profile.Speed*dt;}
                 if(aiTime<=0) {right.Blocking=left.Action!=0&&right.Action==0&&right.Stun<=0&&Random.value<.65f; if(distance<2.1f)right.Attack(Random.Range(1,4)); aiTime=Random.Range(.4f,1f); }
             }
+            // Resolve horizontal overlap explicitly because Starter Assets colliders are disabled.
             var separation=right.Position-left.Position;separation.y=0;
             if(separation.magnitude<.85f){var push=(separation.sqrMagnitude<.001f?Vector3.right:separation.normalized)*(.85f-separation.magnitude)*.5f;left.Position-=push;right.Position+=push;}
             left.Tick(dt,right.Position,lm);right.Tick(dt,left.Position,rm);
             Hit(left,right);Hit(right,left);
             if(left.Health<=0 || right.Health<=0 || timer<=0)
             {
+                // Compare remaining health percentages so high-health characters do not
+                // automatically win a timeout simply because their maximum health is larger.
                 float lh=left.Health/left.Profile.Health,rh=right.Health/right.Profile.Health;
                 if(Mathf.Abs(lh-rh)<.001f)result="EMPATE · SE REPITE LA RONDA";
                 else {var winner=lh>rh?left:right;winner.Wins++;result=winner.Profile.Name+" GANA LA RONDA";}
@@ -110,6 +123,7 @@ namespace PixelForge
             if(Down(jump)&&f.Height<=0 && !f.Blocking)f.VerticalSpeed=7;
             var movement=new Vector3((Held(forward)?1:0)-(Held(back)?1:0),0,(Held(up)?1:0)-(Held(down)?1:0));
             if(f.Action!=0 || f.Blocking)movement=Vector3.zero;
+            // Project the camera axes onto the floor, then clamp diagonals to prevent faster movement.
             var cameraForward=arenaCamera.transform.forward;cameraForward.y=0;cameraForward.Normalize();
             var cameraRight=arenaCamera.transform.right;cameraRight.y=0;cameraRight.Normalize();
             movement=Vector3.ClampMagnitude(cameraRight*movement.x+cameraForward*movement.z,1);f.Position+=movement*f.Profile.Speed*dt;return movement.magnitude;
@@ -123,6 +137,8 @@ namespace PixelForge
         }
         void Hit(ForgeFighter attacker,ForgeFighter target)
         {
+            // Each attack gets one hit attempt after its wind-up. A miss cannot damage
+            // a target later in the same swing; range, height, and facing must all match.
             if(attacker.Action==0 || attacker.HitApplied || attacker.ActionTime<.2f)return;
             attacker.HitApplied=true;
             float reach=attacker.Action==1?1.45f:2.05f;
@@ -148,6 +164,7 @@ namespace PixelForge
         {
             if(screen!=ScreenState.Fight)return;
             Styles();
+            // Fit the HUD uniformly inside the viewport instead of stretching each axis independently.
             float scale=Mathf.Min(Screen.width/1280f,Screen.height/720f);
             var offset=new Vector3((Screen.width-1280*scale)*.5f,(Screen.height-720*scale)*.5f,0);
             GUI.matrix=Matrix4x4.TRS(offset,Quaternion.identity,new Vector3(scale,scale,1));

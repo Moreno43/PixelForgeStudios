@@ -2,7 +2,10 @@ using UnityEngine;
 
 namespace PixelForge
 {
-    // Joint poses are animated in code so the prototype needs no external clips.
+    /// <summary>
+    /// Owns a fighter instance and its transient combat state. Imported Animator clips drive
+    /// locomotion; procedural bone aiming adds guard, attacks, hit reactions, and knockout poses.
+    /// </summary>
     public sealed class ForgeFighter
     {
         public readonly Transform Root;
@@ -25,6 +28,7 @@ namespace PixelForge
             if(prefab!=null)
             {
                 var go=Object.Instantiate(prefab,new Vector3(x,0,0),Quaternion.identity);go.name=profile.Name;Root=go.transform;
+                // The arena owns movement and input; prevent the prefab's controllers from competing.
                 foreach(var component in go.GetComponentsInChildren<MonoBehaviour>())component.enabled=false;
                 foreach(var collider in go.GetComponentsInChildren<Collider>())collider.enabled=false;
                 animator=go.GetComponentInChildren<Animator>();animator.applyRootMotion=false;animator.cullingMode=AnimatorCullingMode.AlwaysAnimate;
@@ -38,15 +42,15 @@ namespace PixelForge
             }
             Root = new GameObject(profile.Name).transform;
             Root.position = new Vector3(x, 0, 0);
-            body = Joint("Cuerpo", new Vector3(0, 1.35f, 0));
+            body = Joint("Body", new Vector3(0, 1.35f, 0));
             Part("Torso", body, Vector3.zero, new Vector3(.65f, .8f, .4f), profile.Color);
-            Part("Casco", body, new Vector3(0, .69f, 0), new Vector3(.48f, .46f, .45f), profile.Color);
+            Part("Helmet", body, new Vector3(0, .69f, 0), new Vector3(.48f, .46f, .45f), profile.Color);
             Part("Visor", body, new Vector3(0, .72f, -.24f), new Vector3(.38f, .1f, .04f), Color.white);
-            Part("Nucleo", body, new Vector3(0, .1f, -.22f), new Vector3(.21f, .27f, .04f), Color.white);
-            armL = Joint("Brazo izquierdo", new Vector3(-.43f, 1.62f, 0));
-            armR = Joint("Brazo derecho", new Vector3(.43f, 1.62f, 0));
-            legL = Joint("Pierna izquierda", new Vector3(-.21f, .98f, 0));
-            legR = Joint("Pierna derecha", new Vector3(.21f, .98f, 0));
+            Part("Core", body, new Vector3(0, .1f, -.22f), new Vector3(.21f, .27f, .04f), Color.white);
+            armL = Joint("Left Arm", new Vector3(-.43f, 1.62f, 0));
+            armR = Joint("Right Arm", new Vector3(.43f, 1.62f, 0));
+            legL = Joint("Left Leg", new Vector3(-.21f, .98f, 0));
+            legR = Joint("Right Leg", new Vector3(.21f, .98f, 0));
             Limb(armL, .65f, profile.Color); Limb(armR, .65f, profile.Color);
             Limb(legL, .85f, new Color(.15f,.18f,.25f)); Limb(legR, .85f, new Color(.15f,.18f,.25f));
         }
@@ -54,8 +58,8 @@ namespace PixelForge
         { var t = new GameObject(name).transform; t.SetParent(Root, false); t.localPosition = position; return t; }
         void Limb(Transform joint, float length, Color color)
         {
-            Part("Armadura", joint, new Vector3(0,-length*.5f,0), new Vector3(.24f,length,.28f), color);
-            Part("Extremo", joint, new Vector3(0,-length,0), new Vector3(.3f,.22f,.35f), Profile.Color);
+            Part("Armor", joint, new Vector3(0,-length*.5f,0), new Vector3(.24f,length,.28f), color);
+            Part("End Segment", joint, new Vector3(0,-length,0), new Vector3(.3f,.22f,.35f), Profile.Color);
         }
         public static Transform Part(string name, Transform parent, Vector3 position, Vector3 size, Color color)
         {
@@ -75,6 +79,8 @@ namespace PixelForge
         { if(Action != 0 || Stun > 0 || Blocking || Health <= 0) return; Action = action; ActionTime = 0; HitApplied = false; }
         public void Tick(float dt, Vector3 target, float move)
         {
+            // Remove last frame's procedural offsets before Animator evaluates the next base pose.
+            // This prevents cumulative bone rotation, including across pause/resume transitions.
             if(posed){for(int i=0;i<bones.Length;i++)if(bones[i]!=null)bones[i].localRotation=basePose[i];posed=false;}
             Stun = Mathf.Max(0, Stun-dt);
             if(Action != 0) { ActionTime += dt; if(ActionTime > .55f) Action = 0; }
@@ -103,6 +109,8 @@ namespace PixelForge
         }
         public void Pose()
         {
+            // Cache the evaluated pose before adding this frame's combat offsets. A sine envelope
+            // blends an attack out and back instead of leaving the limb extended after recovery.
             if(animator==null)return;
             if(posed)for(int i=0;i<bones.Length;i++)if(bones[i]!=null)bones[i].localRotation=basePose[i];
             for(int i=0;i<bones.Length;i++)if(bones[i]!=null)basePose[i]=bones[i].localRotation;
@@ -137,10 +145,12 @@ namespace PixelForge
         void Rotate(int index,Vector3 euler){if(bones[index]!=null)bones[index].localRotation*=Quaternion.Euler(euler);}
         public void Dispose()
         {
+            // Fighter colors use per-instance materials; release those copies with the fighter.
             foreach(var renderer in Root.GetComponentsInChildren<Renderer>())foreach(var material in renderer.sharedMaterials)Object.Destroy(material);
             Object.Destroy(Root.gameObject);
         }
     }
+    /// <summary>Defines the display identity and base combat statistics shared by fighter instances.</summary>
     public sealed class FighterProfile
     {
         public string Name, Style; public Color Color; public float Health, Speed, Power;
