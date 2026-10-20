@@ -2,12 +2,14 @@ using UnityEngine;
 
 namespace PixelForge
 {
+    /// <summary>Builds a playable URP terrain using the imported sample without editing source assets.</summary>
     public static class ForgeTerrain
     {
         public static bool Build()
         {
             var assets=Resources.Load<ForgeEnvironmentAssets>("ForgeEnvironment");
             if(assets==null)return false;
+            // Resample the large source terrain into a smaller runtime terrain for the arena.
             var data=new TerrainData{heightmapResolution=257,size=new Vector3(100,20,100),alphamapResolution=128};
             var heights=new float[257,257];
             float center=assets.sourceTerrain.GetInterpolatedHeight(.5f,.5f)/assets.sourceTerrain.size.y;
@@ -15,12 +17,16 @@ namespace PixelForge
             {
                 float u=x/256f,v=z/256f;float distance=new Vector2((u-.5f)*100,(v-.5f)*100).magnitude;
                 float source=assets.sourceTerrain.GetInterpolatedHeight(u,v)/assets.sourceTerrain.size.y;
+                // Keep the central 12 meters flat, then blend back to the sample's relief.
+                // A normalized height of 0.25 becomes world Y=0 after the terrain's -5 Y offset.
                 float blend=Mathf.SmoothStep(0,1,Mathf.InverseLerp(12,25,distance));
                 heights[z,x]=Mathf.Clamp01(.25f+(source-center)*blend);
             }
             data.SetHeights(0,0,heights);
+            // Clone layers before changing texture tiling to preserve the imported package settings.
             var grass=Object.Instantiate(assets.grass);var soil=Object.Instantiate(assets.soil);grass.tileSize=soil.tileSize=new Vector2(5,5);
             data.terrainLayers=new[]{grass,soil};
+            // Each texel's two weights sum to one: soil inside the ring, grass outside it.
             var splat=new float[128,128,2];
             for(int z=0;z<128;z++)for(int x=0;x<128;x++){float d=new Vector2((x/127f-.5f)*100,(z/127f-.5f)*100).magnitude;float g=Mathf.SmoothStep(0,1,Mathf.InverseLerp(8,17,d));splat[z,x,0]=g;splat[z,x,1]=1-g;}
             data.SetAlphamaps(0,0,splat);
@@ -36,6 +42,8 @@ namespace PixelForge
         }
         static void Convert(GameObject go,Shader shader)
         {
+            // Map HDRP textures to new URP materials on scene instances only. Alpha clipping
+            // keeps leaf silhouettes opaque without rendering their rectangular texture backgrounds.
             foreach(var renderer in go.GetComponentsInChildren<Renderer>())
             {
                 var originals=renderer.sharedMaterials;var materials=new Material[originals.Length];

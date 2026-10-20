@@ -6,7 +6,9 @@ using UnityEngine.SceneManagement;
 
 namespace PixelForge
 {
+    // Static selections survive the scene change without keeping menu GameObjects alive.
     public static class ForgeMatch { public static int Left,Right=1; public static bool Versus; }
+    /// <summary>Builds the front-end screens and loads the arena after both fighters are selected.</summary>
     public sealed class ForgeMenu : MonoBehaviour
     {
         ForgeUI ui; int selecting;
@@ -32,6 +34,7 @@ namespace PixelForge
             ui.Clear("ELIGE TU GUERRERO",selecting==0?"JUGADOR 1":ForgeMatch.Versus?"JUGADOR 2":"RIVAL CPU");
             for(int i=0;i<ForgeArena.Roster.Length;i++)
             {
+                // Capture a separate index for each button callback, rather than the loop variable.
                 int index=i;var f=ForgeArena.Roster[i];float x=70+i*232;
                 ui.Panel(x,240,215,225,f.Color*.5f);
                 ui.Text(x+15,265,190,70,f.Name,30);
@@ -60,7 +63,10 @@ namespace PixelForge
             ui.Button(80,625,400,"VOLVER",Home);ui.Focus();
         }
     }
-    // Canvas + InputSystemUIInputModule provides real pointer and keyboard navigation.
+    /// <summary>
+    /// Creates reusable Canvas screens with pointer input and keyboard navigation.
+    /// Layout coordinates use a centered 1280x720 reference canvas.
+    /// </summary>
     public sealed class ForgeUI
     {
         readonly RectTransform root, content; readonly Font font; GameObject first;
@@ -71,6 +77,8 @@ namespace PixelForge
             go.GetComponent<Canvas>().renderMode=RenderMode.ScreenSpaceOverlay;
             var scaler=go.GetComponent<CanvasScaler>();scaler.uiScaleMode=CanvasScaler.ScaleMode.ScaleWithScreenSize;scaler.referenceResolution=new Vector2(1280,720);scaler.screenMatchMode=CanvasScaler.ScreenMatchMode.Expand;
             root=go.GetComponent<RectTransform>();font=Resources.GetBuiltinResource<Font>("Arial.ttf");
+            // Expand the root to fit the viewport, but keep the designed content centered
+            // at its reference size so wide or tall windows do not crop the menu.
             var contentObject=new GameObject("Centered 1280x720 Layout",typeof(RectTransform));content=contentObject.GetComponent<RectTransform>();content.SetParent(root,false);
             content.anchorMin=content.anchorMax=new Vector2(.5f,.5f);content.pivot=new Vector2(.5f,.5f);content.sizeDelta=new Vector2(1280,720);content.anchoredPosition=Vector2.zero;
         }
@@ -82,6 +90,8 @@ namespace PixelForge
         public void Hide(){root.gameObject.SetActive(false);}
         public void Clear(string title,string subtitle)
         {
+            // Destroy is deferred until the end of the frame. Disable old controls immediately
+            // so they cannot intercept clicks while the replacement screen is being built.
             root.gameObject.SetActive(true);foreach(Transform child in content){child.gameObject.SetActive(false);Object.Destroy(child.gameObject);}first=null;
             var bg=Panel(0,0,1280,720,new Color(.035f,.055f,.10f));bg.anchorMin=Vector2.zero;bg.anchorMax=Vector2.one;bg.offsetMin=bg.offsetMax=Vector2.zero;
             Panel(740,0,540,720,new Color(.08f,.16f,.21f));Panel(70,70,8,115,new Color(1,.58f,.12f));
@@ -90,6 +100,7 @@ namespace PixelForge
         }
         public RectTransform Panel(float x,float y,float w,float h,Color color){var rt=Rect("Panel",x,y,w,h);rt.gameObject.AddComponent<Image>().color=color;return rt;}
         public void Text(float x,float y,float w,float h,string value,int size)
+        // Text is decorative: pointer raycasts must reach the button underneath it.
         {var t=Rect(value,x,y,w,h).gameObject.AddComponent<Text>();t.font=font;t.text=value;t.fontSize=size;t.color=Color.white;t.raycastTarget=false;t.horizontalOverflow=HorizontalWrapMode.Wrap;t.verticalOverflow=VerticalWrapMode.Overflow;}
         public void Button(float x,float y,float w,string label,UnityEngine.Events.UnityAction action)
         {

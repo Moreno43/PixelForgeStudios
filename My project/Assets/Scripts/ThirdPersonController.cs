@@ -371,6 +371,8 @@ namespace StarterAssets
 
         private void OnFootstep(AnimationEvent animationEvent)
         {
+            // Animation events can reach disabled components before Start initializes the controller.
+            // Arena fighters use their own animation system, so ignore those callbacks safely.
             if (!isActiveAndEnabled || _controller == null || animationEvent == null) return;
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
@@ -384,6 +386,7 @@ namespace StarterAssets
 
         private void OnLand(AnimationEvent animationEvent)
         {
+            // Missing audio or an inactive controller must not interrupt landing animation playback.
             if (!isActiveAndEnabled || _controller == null || LandingAudioClip == null || animationEvent == null) return;
             if (animationEvent.animatorClipInfo.weight > 0.5f)
             {
