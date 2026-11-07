@@ -1,0 +1,44 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ec908922235e14845a3bd23d305454c5, type: 3}
+  m_Name: ForgeAudio
+  m_EditorClassIdentifier: 
+  menuMusic: {fileID: 8300000, guid: dadd6324da525d14f9b1d15f74656bbe, type: 3}
+  battleMusic:
+  - {fileID: 8300000, guid: 314c6297c8b2a5e4ab826431cd82dd21, type: 3}
+  - {fileID: 8300000, guid: 5e549257680843c459c1eb9f3ee8e67c, type: 3}
+  - {fileID: 8300000, guid: b74fe413299f82a408646adf23e9c6b0, type: 3}
+  punch:
+  - {fileID: 8300000, guid: 4cd65d4aac7fafd4b9dd8a86ea4915d8, type: 3}
+  kick:
+  - {fileID: 8300000, guid: 62bd59c26af4fcc4ea970ce97a8d4d3b, type: 3}
+  heavy:
+  - {fileID: 8300000, guid: 6c54dab4be975f143886d5332b39534c, type: 3}
+  block:
+  - {fileID: 8300000, guid: cb2231c595a87ac4cb36080f396cd890, type: 3}
+  dash:
+  - {fileID: 8300000, guid: 8441438d67b1406448559e1117829584, type: 3}
+  jump:
+  - {fileID: 8300000, guid: 836519de76c9a7b48a674e1b98e4ae86, type: 3}
+  land:
+  - {fileID: 8300000, guid: ff697d3070687ce4583faa0561a145a2, type: 3}
+  footsteps:
+  - {fileID: 8300000, guid: 72f526a6a9890f643a88e85a61c86c8a, type: 3}
+  - {fileID: 8300000, guid: 85016e0f2b01da248b9663dd49a161b0, type: 3}
+  - {fileID: 8300000, guid: 186de84b3207156479abe98f4958fed0, type: 3}
+  - {fileID: 8300000, guid: 1a91fcd19acf1e54bba0945d9f390849, type: 3}
+  - {fileID: 8300000, guid: 14e8a8d2158bec840b56c54f5266e692, type: 3}
+  - {fileID: 8300000, guid: 29841e7d5bbfb5b419c9ad16ca8bc4c1, type: 3}
+  - {fileID: 8300000, guid: dd1af302b8902684d9381de1f2d3a5af, type: 3}
+  - {fileID: 8300000, guid: 67c8b33e424ccdc4486edf538ab91c5a, type: 3}
+  - {fileID: 8300000, guid: 274649b0e221539409070ebf6c18918b, type: 3}
+  - {fileID: 8300000, guid: a3194b8bbc96ef84fab1f98f4b7dae3e, type: 3}
